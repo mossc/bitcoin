@@ -42,6 +42,8 @@ size_t CCoinsViewCache::DynamicMemoryUsage() const {
 }
 
 extern int64_t gAbuliabiachia;
+extern bool gConnectBlockRunning;
+
 static int64_t nAbuCount = gAbuliabiachia;
 static int64_t nShrimp[6] = {0};
 
@@ -61,34 +63,42 @@ CCoinsMap::iterator CCoinsViewCache::FetchCoin(const COutPoint &outpoint) const 
 
     int64_t nPunch = GetTimeMicros();
     CCoinsMap::iterator it = cacheCoins.find(outpoint);
-    nShrimp[0] += GetTimeMicros() - nPunch;
+    if (gConnectBlockRunning)
+        nShrimp[0] += GetTimeMicros() - nPunch;
 
     nPunch = GetTimeMicros();
     if (it != cacheCoins.end()) {
-        nShrimp[1] += GetTimeMicros() - nPunch;
+        if (gConnectBlockRunning)
+            nShrimp[1] += GetTimeMicros() - nPunch;
         return it;
     }
-    nShrimp[1] += GetTimeMicros() - nPunch;
+    if (gConnectBlockRunning)
+        nShrimp[1] += GetTimeMicros() - nPunch;
     nPunch = GetTimeMicros();
     Coin tmp;
     if (!base->GetCoin(outpoint, tmp)) {
-        nShrimp[2] += GetTimeMicros() - nPunch;
+        if (gConnectBlockRunning)
+            nShrimp[2] += GetTimeMicros() - nPunch;
         return cacheCoins.end();
     }
-    nShrimp[2] += GetTimeMicros() - nPunch;
+    if (gConnectBlockRunning)
+        nShrimp[2] += GetTimeMicros() - nPunch;
     nPunch = GetTimeMicros();
     CCoinsMap::iterator ret = cacheCoins.emplace(std::piecewise_construct, std::forward_as_tuple(outpoint), std::forward_as_tuple(std::move(tmp))).first;
-    nShrimp[3] += GetTimeMicros() - nPunch;
+    if (gConnectBlockRunning)
+        nShrimp[3] += GetTimeMicros() - nPunch;
     nPunch = GetTimeMicros();
     if (ret->second.coin.IsSpent()) {
         // The parent only has an empty entry for this outpoint; we can consider our
         // version as fresh.
         ret->second.flags = CCoinsCacheEntry::FRESH;
     }
-    nShrimp[4] += GetTimeMicros() - nPunch;
+    if (gConnectBlockRunning)
+        nShrimp[4] += GetTimeMicros() - nPunch;
     nPunch = GetTimeMicros();
     cachedCoinsUsage += ret->second.coin.DynamicMemoryUsage();
-    nShrimp[5] += GetTimeMicros() - nPunch;
+    if (gConnectBlockRunning)
+        nShrimp[5] += GetTimeMicros() - nPunch;
     return ret;
 }
 
