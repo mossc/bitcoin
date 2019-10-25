@@ -1821,12 +1821,8 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
             // We don't write down blocks to disk if they may have been
             // corrupted, so this should be impossible unless we're having hardware
             // problems.
-            gAbuliabiachia++;
-            gMonitorSession = false;
             return AbortNode(state, "Corrupt block found indicating potential hardware failure; shutting down");
         }
-        gAbuliabiachia++;
-        gMonitorSession = false;
         return error("%s: Consensus::CheckBlock: %s", __func__, FormatStateMessage(state));
     }
 
@@ -1839,8 +1835,6 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     if (block.GetHash() == chainparams.GetConsensus().hashGenesisBlock) {
         if (!fJustCheck)
             view.SetBestBlock(pindex->GetBlockHash());
-        gAbuliabiachia++;
-        gMonitorSession = false;
         return true;
     }
 
@@ -1958,8 +1952,6 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
         for (const auto& tx : block.vtx) {
             for (size_t o = 0; o < tx->vout.size(); o++) {
                 if (view.HaveCoin(COutPoint(tx->GetHash(), o))) {
-                    gAbuliabiachia++;
-                    gMonitorSession = false;
                     return state.DoS(100, error("ConnectBlock(): tried to overwrite transaction"),
                                      REJECT_INVALID, "bad-txns-BIP30");
                 }
