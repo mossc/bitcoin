@@ -212,7 +212,7 @@ extern int64_t gAbuliabiachia;
 static int64_t nAbuCount = gAbuliabiachia;
 static int64_t nShrimp[6] = {0};
 
-bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, const CCoinsViewCache& inputs, int nSpendHeight, CAmount& txfee, bool bDumpLog)
+bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, const CCoinsViewCache& inputs, int nSpendHeight, CAmount& txfee)
 {
     if (nAbuCount != gAbuliabiachia) {
         LogPrintf("[HHH] abu=%d ", nAbuCount);
