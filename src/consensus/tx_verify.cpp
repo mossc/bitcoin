@@ -209,36 +209,33 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state, bool fChe
 }
 
 extern int64_t gAbuliabiachia;
-extern bool gMonitorSession;
 
-static int64_t nAbuCountPia = gAbuliabiachia;
-static int64_t nShrimpPia[5] = {0};
+static int64_t nAbuCount = gAbuliabiachia;
+static int64_t nShrimp[5] = {0};
 
 bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, const CCoinsViewCache& inputs, int nSpendHeight, CAmount& txfee)
 {
-    if (nAbuCountPia != gAbuliabiachia) {
-        LogPrintf("[HHH] abu=%d ", nAbuCountPia);
+    if (nAbuCount != gAbuliabiachia) {
+        LogPrintf("[HHH] abu=%d ", nAbuCount);
         int64_t nSum = 0;
         for (int i = 0; i < 5; i++) {
-            nSum += nShrimpPia[i];
-            LogPrintf("t[%d]=%.2fms ", i, nShrimpPia[i] * 0.001);
+            nSum += nShrimp[i];
+            LogPrintf("t[%d]=%.2fms ", i, nShrimp[i] * 0.001);
         }
         LogPrintf("sum=%.2fms\n", nSum * 0.001);
-        memset(nShrimpPia, 0, sizeof(int64_t) * 5);
-        nAbuCountPia = gAbuliabiachia;
+        memset(nShrimp, 0, sizeof(int64_t) * 5);
+        nAbuCount = gAbuliabiachia;
     }
 
     int64_t nPunch = 0;
     // are the actual inputs available?
     nPunch = GetTimeMicros();
     if (!inputs.HaveInputs(tx)) {
-        if (gMonitorSession)
-            nShrimpPia[0] += GetTimeMicros() - nPunch;
+        nShrimp[0] += GetTimeMicros() - nPunch;
         return state.DoS(100, false, REJECT_INVALID, "bad-txns-inputs-missingorspent", false,
                          strprintf("%s: inputs missing/spent", __func__));
     }
-    if (gMonitorSession)
-        nShrimpPia[0] += GetTimeMicros() - nPunch;
+    nShrimp[0] += GetTimeMicros() - nPunch;
 
     CAmount nValueIn = 0;
     for (unsigned int i = 0; i < tx.vin.size(); ++i) {
@@ -246,38 +243,32 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
         const COutPoint &prevout = tx.vin[i].prevout;
         const Coin& coin = inputs.AccessCoin(prevout);
         assert(!coin.IsSpent());
-        if (gMonitorSession)
-            nShrimpPia[1] += (GetTimeMicros() - nPunch);
+        nShrimp[1] += (GetTimeMicros() - nPunch);
 
         nPunch = GetTimeMicros();
         // If prev is coinbase, check that it's matured
         if (coin.IsCoinBase() && nSpendHeight - coin.nHeight < COINBASE_MATURITY) {
-            if (gMonitorSession)
-                nShrimpPia[2] += GetTimeMicros() - nPunch;
+            nShrimp[2] += GetTimeMicros() - nPunch;
             return state.Invalid(false,
                 REJECT_INVALID, "bad-txns-premature-spend-of-coinbase",
                 strprintf("tried to spend coinbase at depth %d", nSpendHeight - coin.nHeight));
         }
-        if (gMonitorSession)
-            nShrimpPia[2] += GetTimeMicros() - nPunch;
+        nShrimp[2] += GetTimeMicros() - nPunch;
 
         nPunch = GetTimeMicros();
         // Check for negative or overflow input values
         nValueIn += coin.out.nValue;
         if (!MoneyRange(coin.out.nValue) || !MoneyRange(nValueIn)) {
-            if (gMonitorSession)
-                nShrimpPia[3] += GetTimeMicros() - nPunch;
+            nShrimp[3] += GetTimeMicros() - nPunch;
             return state.DoS(100, false, REJECT_INVALID, "bad-txns-inputvalues-outofrange");
         }
-        if (gMonitorSession)
-            nShrimpPia[3] += GetTimeMicros() - nPunch;
+        nShrimp[3] += GetTimeMicros() - nPunch;
     }
 
     nPunch = GetTimeMicros();
     const CAmount value_out = tx.GetValueOut();
     if (nValueIn < value_out) {
-        if (gMonitorSession)
-            nShrimpPia[4] += GetTimeMicros() - nPunch;
+        nShrimp[4] += GetTimeMicros() - nPunch;
         return state.DoS(100, false, REJECT_INVALID, "bad-txns-in-belowout", false,
             strprintf("value in (%s) < value out (%s)", FormatMoney(nValueIn), FormatMoney(value_out)));
     }
@@ -285,14 +276,12 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
     // Tally transaction fees
     const CAmount txfee_aux = nValueIn - value_out;
     if (!MoneyRange(txfee_aux)) {
-        if (gMonitorSession)
-            nShrimpPia[4] += GetTimeMicros() - nPunch;
+        nShrimp[4] += GetTimeMicros() - nPunch;
         return state.DoS(100, false, REJECT_INVALID, "bad-txns-fee-outofrange");
     }
 
     txfee = txfee_aux;
-    if (gMonitorSession)
-        nShrimpPia[4] += GetTimeMicros() - nPunch;
+    nShrimp[4] += GetTimeMicros() - nPunch;
 
     return true;
 }

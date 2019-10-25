@@ -1790,7 +1790,6 @@ static int64_t nTimeTotal = 0;
 static int64_t nBlocksTotal = 0;
 
 int64_t gAbuliabiachia = 0;
-bool gMonitorSession = false;
 
 /** Apply the effects of this block (with given index) on the UTXO set represented by coins.
  *  Validity checks that depend on the UTXO set are also done; ConnectBlock()
@@ -1972,7 +1971,6 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     LogPrint(BCLog::BENCH, "    - Fork checks: %.2fms [%.2fs (%.2fms/blk)]\n", MILLI * (nTime2 - nTime1), nTimeForks * MICRO, nTimeForks * MILLI / nBlocksTotal);
 
     int64_t nShrimp[8] = {0};
-    gMonitorSession = true;
     int64_t nPunch = GetTimeMicros();
 
     CBlockUndo blockundo;
@@ -2001,7 +1999,6 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
             if (!Consensus::CheckTxInputs(tx, state, view, pindex->nHeight, txfee)) {
                 gAbuliabiachia++;
                 nShrimp[1] += GetTimeMicros() - nPunch;
-                gMonitorSession = false;
                 return error("%s: Consensus::CheckTxInputs: %s, %s", __func__, tx.GetHash().ToString(), FormatStateMessage(state));
             }
             nShrimp[1] += GetTimeMicros() - nPunch;
@@ -2011,7 +2008,6 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
             if (!MoneyRange(nFees)) {
                 gAbuliabiachia++;
                 nShrimp[2] += GetTimeMicros() - nPunch;
-                gMonitorSession = false;
                 return state.DoS(100, error("%s: accumulated fee in the block out of range.", __func__),
                                  REJECT_INVALID, "bad-txns-accumulated-fee-outofrange");
             }
@@ -2031,7 +2027,6 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
             if (!SequenceLocks(tx, nLockTimeFlags, &prevheights, *pindex)) {
                 gAbuliabiachia++;
                 nShrimp[4] += GetTimeMicros() - nPunch;
-                gMonitorSession = false;
                 return state.DoS(100, error("%s: contains a non-BIP68-final transaction", __func__),
                                  REJECT_INVALID, "bad-txns-nonfinal");
             }
@@ -2047,7 +2042,6 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
         if (nSigOpsCost > MAX_BLOCK_SIGOPS_COST) {
             gAbuliabiachia++;
             nShrimp[5] += GetTimeMicros() - nPunch;
-            gMonitorSession = false;
             return state.DoS(100, error("ConnectBlock(): too many sigops"),
                              REJECT_INVALID, "bad-blk-sigops");
         }
@@ -2062,7 +2056,6 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
             if (!CheckInputs(tx, state, view, fScriptChecks, flags, fCacheResults, fCacheResults, txdata[i], nScriptCheckThreads ? &vChecks : nullptr)) {
                 gAbuliabiachia++;
                 nShrimp[6] += GetTimeMicros() - nPunch;
-                gMonitorSession = false;
                 return error("ConnectBlock(): CheckInputs on %s failed with %s",
                     tx.GetHash().ToString(), FormatStateMessage(state));
             }
@@ -2087,7 +2080,6 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     }
     LogPrintf("sum=%.2fms\n", nSum * MILLI);
     gAbuliabiachia++;
-    gMonitorSession = false;
 
     int64_t nTime3 = GetTimeMicros(); nTimeConnect += nTime3 - nTime2;
     LogPrint(BCLog::BENCH, "      - Connect %u transactions: %.2fms (%.3fms/tx, %.3fms/txin) [%.2fs (%.2fms/blk)]\n", (unsigned)block.vtx.size(), MILLI * (nTime3 - nTime2), MILLI * (nTime3 - nTime2) / block.vtx.size(), nInputs <= 1 ? 0 : MILLI * (nTime3 - nTime2) / (nInputs-1), nTimeConnect * MICRO, nTimeConnect * MILLI / nBlocksTotal);

@@ -8,8 +8,8 @@
 #include <random.h>
 #include <version.h>
 
-#include <util/time.h>
 #include <logging.h>
+#include <util/time.h>
 
 bool CCoinsView::GetCoin(const COutPoint &outpoint, Coin &coin) const { return false; }
 uint256 CCoinsView::GetBestBlock() const { return uint256(); }
@@ -41,66 +41,20 @@ size_t CCoinsViewCache::DynamicMemoryUsage() const {
     return memusage::DynamicUsage(cacheCoins) + cachedCoinsUsage;
 }
 
-extern int64_t gAbuliabiachia;
-extern bool gMonitorSession;
-
-static int64_t nAbuCount = gAbuliabiachia;
-static int64_t nShrimp[6] = {0};
-
 CCoinsMap::iterator CCoinsViewCache::FetchCoin(const COutPoint &outpoint) const {
-
-    if (nAbuCount != gAbuliabiachia) {
-        LogPrintf("[III] abu=%d ", nAbuCount);
-        int64_t nSum = 0;
-        for (int i = 0; i < 6; i++) {
-            nSum += nShrimp[i];
-            LogPrintf("t[%d]=%.2fms ", i, nShrimp[i] * 0.001);
-        }
-        LogPrintf("sum=%.2fms\n", nSum * 0.001);
-        memset(nShrimp, 0, sizeof(int64_t) * 6);
-        nAbuCount = gAbuliabiachia;
-    }
-
-    int64_t nPunch = GetTimeMicros();
     CCoinsMap::iterator it = cacheCoins.find(outpoint);
-    if (gMonitorSession)
-        nShrimp[0] += GetTimeMicros() - nPunch;
-
-    nPunch = GetTimeMicros();
-    if (it != cacheCoins.end()) {
-        if (gMonitorSession)
-            nShrimp[1] += GetTimeMicros() - nPunch;
+    if (it != cacheCoins.end())
         return it;
-    }
-    if (gMonitorSession)
-        nShrimp[1] += GetTimeMicros() - nPunch;
-
-    nPunch = GetTimeMicros();
     Coin tmp;
-    if (!base->GetCoin(outpoint, tmp)) {
-        if (gMonitorSession)
-            nShrimp[2] += GetTimeMicros() - nPunch;
+    if (!base->GetCoin(outpoint, tmp))
         return cacheCoins.end();
-    }
-    if (gMonitorSession)
-        nShrimp[2] += GetTimeMicros() - nPunch;
-
-    nPunch = GetTimeMicros();
     CCoinsMap::iterator ret = cacheCoins.emplace(std::piecewise_construct, std::forward_as_tuple(outpoint), std::forward_as_tuple(std::move(tmp))).first;
-    if (gMonitorSession)
-        nShrimp[3] += GetTimeMicros() - nPunch;
-    nPunch = GetTimeMicros();
     if (ret->second.coin.IsSpent()) {
         // The parent only has an empty entry for this outpoint; we can consider our
         // version as fresh.
         ret->second.flags = CCoinsCacheEntry::FRESH;
     }
-    if (gMonitorSession)
-        nShrimp[4] += GetTimeMicros() - nPunch;
-    nPunch = GetTimeMicros();
     cachedCoinsUsage += ret->second.coin.DynamicMemoryUsage();
-    if (gMonitorSession)
-        nShrimp[5] += GetTimeMicros() - nPunch;
     return ret;
 }
 
@@ -172,8 +126,29 @@ const Coin& CCoinsViewCache::AccessCoin(const COutPoint &outpoint) const {
     }
 }
 
+extern int64_t gAbuliabiachia;
+
+static int64_t nAbuCount = gAbuliabiachia;
+static int64_t nShrimp[1] = {0};
+
 bool CCoinsViewCache::HaveCoin(const COutPoint &outpoint) const {
+
+    if (nAbuCount != gAbuliabiachia) {
+        LogPrintf("[HHH] abu=%d ", nAbuCount);
+        int64_t nSum = 0;
+        for (int i = 0; i < 1; i++) {
+            nSum += nShrimp[i];
+            LogPrintf("t[%d]=%.2fms ", i, nShrimp[i] * 0.001);
+        }
+        LogPrintf("sum=%.2fms\n", nSum * 0.001);
+        memset(nShrimp, 0, sizeof(int64_t) * 1);
+        nAbuCount = gAbuliabiachia;
+    }
+
+    int64_t nPunch = GetTimeMicros();
     CCoinsMap::const_iterator it = FetchCoin(outpoint);
+    Shrimp[0] += GetTimeMicros() - nPunch;
+
     return (it != cacheCoins.end() && !it->second.coin.IsSpent());
 }
 
