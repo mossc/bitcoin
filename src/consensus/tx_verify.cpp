@@ -209,32 +209,32 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state, bool fChe
 }
 
 extern int64_t gAbuliabiachia;
-static int64_t nAbuCount = gAbuliabiachia;
-static int64_t nShrimp[5] = {0};
+static int64_t nAbuCountPia = gAbuliabiachia;
+static int64_t nShrimpPia[5] = {0};
 
 bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, const CCoinsViewCache& inputs, int nSpendHeight, CAmount& txfee)
 {
-    if (nAbuCount != gAbuliabiachia) {
-        LogPrintf("[HHH] abu=%d ", nAbuCount);
+    if (nAbuCountPia != gAbuliabiachia) {
+        LogPrintf("[HHH] abu=%d ", nAbuCountPia);
         int64_t nSum = 0;
         for (int i = 0; i < 5; i++) {
-            nSum += nShrimp[i];
-            LogPrintf("t[%d]=%.2fms ", i, nShrimp[i] * 0.001);
+            nSum += nShrimpPia[i];
+            LogPrintf("t[%d]=%.2fms ", i, nShrimpPia[i] * 0.001);
         }
         LogPrintf("sum=%.2fms\n", nSum * 0.001);
         memset(nShrimp, 0, sizeof(int64_t) * 5);
-        nAbuCount = gAbuliabiachia;
+        nAbuCountPia = gAbuliabiachia;
     }
 
     int64_t nPunch = 0;
     // are the actual inputs available?
     nPunch = GetTimeMicros();
     if (!inputs.HaveInputs(tx)) {
-        nShrimp[0] += GetTimeMicros() - nPunch;
+        nShrimpPia[0] += GetTimeMicros() - nPunch;
         return state.DoS(100, false, REJECT_INVALID, "bad-txns-inputs-missingorspent", false,
                          strprintf("%s: inputs missing/spent", __func__));
     }
-    nShrimp[0] += GetTimeMicros() - nPunch;
+    nShrimpPia[0] += GetTimeMicros() - nPunch;
 
     CAmount nValueIn = 0;
     for (unsigned int i = 0; i < tx.vin.size(); ++i) {
@@ -242,32 +242,32 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
         const COutPoint &prevout = tx.vin[i].prevout;
         const Coin& coin = inputs.AccessCoin(prevout);
         assert(!coin.IsSpent());
-        nShrimp[1] += (GetTimeMicros() - nPunch);
+        nShrimpPia[1] += (GetTimeMicros() - nPunch);
 
         nPunch = GetTimeMicros();
         // If prev is coinbase, check that it's matured
         if (coin.IsCoinBase() && nSpendHeight - coin.nHeight < COINBASE_MATURITY) {
-            nShrimp[2] += GetTimeMicros() - nPunch;
+            nShrimpPia[2] += GetTimeMicros() - nPunch;
             return state.Invalid(false,
                 REJECT_INVALID, "bad-txns-premature-spend-of-coinbase",
                 strprintf("tried to spend coinbase at depth %d", nSpendHeight - coin.nHeight));
         }
-        nShrimp[2] += GetTimeMicros() - nPunch;
+        nShrimpPia[2] += GetTimeMicros() - nPunch;
 
         nPunch = GetTimeMicros();
         // Check for negative or overflow input values
         nValueIn += coin.out.nValue;
         if (!MoneyRange(coin.out.nValue) || !MoneyRange(nValueIn)) {
-            nShrimp[3] += GetTimeMicros() - nPunch;
+            nShrimpPia[3] += GetTimeMicros() - nPunch;
             return state.DoS(100, false, REJECT_INVALID, "bad-txns-inputvalues-outofrange");
         }
-        nShrimp[3] += GetTimeMicros() - nPunch;
+        nShrimpPia[3] += GetTimeMicros() - nPunch;
     }
 
     nPunch = GetTimeMicros();
     const CAmount value_out = tx.GetValueOut();
     if (nValueIn < value_out) {
-        nShrimp[4] += GetTimeMicros() - nPunch;
+        nShrimpPia[4] += GetTimeMicros() - nPunch;
         return state.DoS(100, false, REJECT_INVALID, "bad-txns-in-belowout", false,
             strprintf("value in (%s) < value out (%s)", FormatMoney(nValueIn), FormatMoney(value_out)));
     }
@@ -275,12 +275,12 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
     // Tally transaction fees
     const CAmount txfee_aux = nValueIn - value_out;
     if (!MoneyRange(txfee_aux)) {
-        nShrimp[4] += GetTimeMicros() - nPunch;
+        nShrimpPia[4] += GetTimeMicros() - nPunch;
         return state.DoS(100, false, REJECT_INVALID, "bad-txns-fee-outofrange");
     }
 
     txfee = txfee_aux;
-    nShrimp[4] += GetTimeMicros() - nPunch;
+    nShrimpPia[4] += GetTimeMicros() - nPunch;
 
     return true;
 }
