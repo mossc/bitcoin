@@ -1789,7 +1789,8 @@ static int64_t nTimeCallbacks = 0;
 static int64_t nTimeTotal = 0;
 static int64_t nBlocksTotal = 0;
 
-int64_t gAbuliabiachia = 0;
+extern int64_t gAbuliabiachia = 0;
+extern bool gConnectBlockRunning = false;
 
 /** Apply the effects of this block (with given index) on the UTXO set represented by coins.
  *  Validity checks that depend on the UTXO set are also done; ConnectBlock()
@@ -1797,6 +1798,7 @@ int64_t gAbuliabiachia = 0;
 bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pindex,
                   CCoinsViewCache& view, const CChainParams& chainparams, bool fJustCheck)
 {
+    gConnectBlockRunning = true;
     AssertLockHeld(cs_main);
     assert(pindex);
     assert(*pindex->phashBlock == block.GetHash());
@@ -1821,9 +1823,11 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
             // corrupted, so this should be impossible unless we're having hardware
             // problems.
             gAbuliabiachia++;
+            gConnectBlockRunning = false;
             return AbortNode(state, "Corrupt block found indicating potential hardware failure; shutting down");
         }
         gAbuliabiachia++;
+        gConnectBlockRunning = false;
         return error("%s: Consensus::CheckBlock: %s", __func__, FormatStateMessage(state));
     }
 
@@ -1837,6 +1841,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
         if (!fJustCheck)
             view.SetBestBlock(pindex->GetBlockHash());
         gAbuliabiachia++;
+        gConnectBlockRunning = false;
         return true;
     }
 
@@ -1955,6 +1960,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
             for (size_t o = 0; o < tx->vout.size(); o++) {
                 if (view.HaveCoin(COutPoint(tx->GetHash(), o))) {
                     gAbuliabiachia++;
+                    gConnectBlockRunning = false;
                     return state.DoS(100, error("ConnectBlock(): tried to overwrite transaction"),
                                      REJECT_INVALID, "bad-txns-BIP30");
                 }
@@ -2003,6 +2009,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
             if (!Consensus::CheckTxInputs(tx, state, view, pindex->nHeight, txfee)) {
                 gAbuliabiachia++;
                 nShrimp[1] += GetTimeMicros() - nPunch;
+                gConnectBlockRunning = false;
                 return error("%s: Consensus::CheckTxInputs: %s, %s", __func__, tx.GetHash().ToString(), FormatStateMessage(state));
             }
             nShrimp[1] += GetTimeMicros() - nPunch;
@@ -2012,6 +2019,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
             if (!MoneyRange(nFees)) {
                 gAbuliabiachia++;
                 nShrimp[2] += GetTimeMicros() - nPunch;
+                gConnectBlockRunning = false;
                 return state.DoS(100, error("%s: accumulated fee in the block out of range.", __func__),
                                  REJECT_INVALID, "bad-txns-accumulated-fee-outofrange");
             }
@@ -2031,6 +2039,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
             if (!SequenceLocks(tx, nLockTimeFlags, &prevheights, *pindex)) {
                 gAbuliabiachia++;
                 nShrimp[4] += GetTimeMicros() - nPunch;
+                gConnectBlockRunning = false;
                 return state.DoS(100, error("%s: contains a non-BIP68-final transaction", __func__),
                                  REJECT_INVALID, "bad-txns-nonfinal");
             }
@@ -2046,6 +2055,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
         if (nSigOpsCost > MAX_BLOCK_SIGOPS_COST) {
             gAbuliabiachia++;
             nShrimp[5] += GetTimeMicros() - nPunch;
+            gConnectBlockRunning = false;
             return state.DoS(100, error("ConnectBlock(): too many sigops"),
                              REJECT_INVALID, "bad-blk-sigops");
         }
@@ -2060,6 +2070,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
             if (!CheckInputs(tx, state, view, fScriptChecks, flags, fCacheResults, fCacheResults, txdata[i], nScriptCheckThreads ? &vChecks : nullptr)) {
                 gAbuliabiachia++;
                 nShrimp[6] += GetTimeMicros() - nPunch;
+                gConnectBlockRunning = false;
                 return error("ConnectBlock(): CheckInputs on %s failed with %s",
                     tx.GetHash().ToString(), FormatStateMessage(state));
             }
@@ -2090,6 +2101,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     CAmount blockReward = nFees + GetBlockSubsidy(pindex->nHeight, chainparams.GetConsensus());
     if (block.vtx[0]->GetValueOut() > blockReward) {
         gAbuliabiachia++;
+        gConnectBlockRunning = false;
         return state.DoS(100,
                          error("ConnectBlock(): coinbase pays too much (actual=%d vs limit=%d)",
                                block.vtx[0]->GetValueOut(), blockReward),
@@ -2098,6 +2110,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
 
     if (!control.Wait()) {
         gAbuliabiachia++;
+        gConnectBlockRunning = false;
         return state.DoS(100, error("%s: CheckQueue failed", __func__), REJECT_INVALID, "block-validation-failed");
     }
     int64_t nTime4 = GetTimeMicros(); nTimeVerify += nTime4 - nTime2;
@@ -2105,11 +2118,13 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
 
     if (fJustCheck) {
         gAbuliabiachia++;
+        gConnectBlockRunning = false;
         return true;
     }
 
     if (!WriteUndoDataForBlock(blockundo, state, pindex, chainparams)) {
         gAbuliabiachia++;
+        gConnectBlockRunning = false;
         return false;
     }
 
@@ -2129,6 +2144,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     LogPrint(BCLog::BENCH, "    - Callbacks: %.2fms [%.2fs (%.2fms/blk)]\n", MILLI * (nTime6 - nTime5), nTimeCallbacks * MICRO, nTimeCallbacks * MILLI / nBlocksTotal);
 
     gAbuliabiachia++;
+    gConnectBlockRunning = false;
     return true;
 }
 
