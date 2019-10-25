@@ -217,7 +217,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
     if (nAbuCount != gAbuliabiachia) {
         LogPrintf("[HHH] abu=%d ", nAbuCount);
         int64_t nSum = 0;
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < 5; i++) {
             nSum += nShrimp[i];
             LogPrintf("t[%d]=%.2fms ", i, nShrimp[i] * 0.001);
         }
