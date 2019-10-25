@@ -42,13 +42,13 @@ size_t CCoinsViewCache::DynamicMemoryUsage() const {
 }
 
 extern int64_t gAbuliabiachia;
-static int64_t gAbuCount = gAbuliabiachia;
+static int64_t nAbuCount = gAbuliabiachia;
 static int64_t nShrimp[6] = {0};
 
 CCoinsMap::iterator CCoinsViewCache::FetchCoin(const COutPoint &outpoint) const {
 
-    if (gAbuCount != gAbuliabiachia) {
-        LogPrintf("[III] abu=%d ", gAbuCount);
+    if (nAbuCount != gAbuliabiachia) {
+        LogPrintf("[III] abu=%d ", nAbuCount);
         int64_t nSum = 0;
         for (int i = 0; i < 6; i++) {
             nSum += nShrimp[i];
@@ -56,7 +56,7 @@ CCoinsMap::iterator CCoinsViewCache::FetchCoin(const COutPoint &outpoint) const 
         }
         LogPrintf("sum=%.2fms\n", nSum * 0.001);
         memset(nShrimp, 0, sizeof(int64_t) * 6);
-        gAbuCount = gAbuliabiachia;
+        nAbuCount = gAbuliabiachia;
     }
 
     int64_t nPunch = GetTimeMicros();
