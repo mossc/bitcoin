@@ -147,7 +147,7 @@ bool CCoinsViewCache::HaveCoin(const COutPoint &outpoint) const {
 
     int64_t nPunch = GetTimeMicros();
     CCoinsMap::const_iterator it = FetchCoin(outpoint);
-    Shrimp[0] += GetTimeMicros() - nPunch;
+    nShrimp[0] += GetTimeMicros() - nPunch;
 
     return (it != cacheCoins.end() && !it->second.coin.IsSpent());
 }
