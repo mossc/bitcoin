@@ -49,8 +49,6 @@ static int64_t nShrimp[6] = {0};
 
 CCoinsMap::iterator CCoinsViewCache::FetchCoin(const COutPoint &outpoint) const {
 
-    LogPrintf("[iii] gConnectBlockRunning=%d\n", gMonitorSession);
-
     if (nAbuCount != gAbuliabiachia) {
         LogPrintf("[III] abu=%d ", nAbuCount);
         int64_t nSum = 0;
