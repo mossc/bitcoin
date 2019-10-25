@@ -134,7 +134,7 @@ static int64_t nShrimp[1] = {0};
 bool CCoinsViewCache::HaveCoin(const COutPoint &outpoint) const {
 
     if (nAbuCount != gAbuliabiachia) {
-        LogPrintf("[HHH] abu=%d ", nAbuCount);
+        LogPrintf("[III] abu=%d ", nAbuCount);
         int64_t nSum = 0;
         for (int i = 0; i < 1; i++) {
             nSum += nShrimp[i];
