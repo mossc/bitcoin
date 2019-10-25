@@ -74,6 +74,7 @@ CCoinsMap::iterator CCoinsViewCache::FetchCoin(const COutPoint &outpoint) const 
     }
     if (gMonitorSession)
         nShrimp[1] += GetTimeMicros() - nPunch;
+    /*
     nPunch = GetTimeMicros();
     Coin tmp;
     if (!base->GetCoin(outpoint, tmp)) {
@@ -83,6 +84,7 @@ CCoinsMap::iterator CCoinsViewCache::FetchCoin(const COutPoint &outpoint) const 
     }
     if (gMonitorSession)
         nShrimp[2] += GetTimeMicros() - nPunch;
+    */
     nPunch = GetTimeMicros();
     CCoinsMap::iterator ret = cacheCoins.emplace(std::piecewise_construct, std::forward_as_tuple(outpoint), std::forward_as_tuple(std::move(tmp))).first;
     if (gMonitorSession)
