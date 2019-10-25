@@ -8,6 +8,9 @@
 #include <random.h>
 #include <version.h>
 
+#include <util/time.h>
+#include <logging.h>
+
 bool CCoinsView::GetCoin(const COutPoint &outpoint, Coin &coin) const { return false; }
 uint256 CCoinsView::GetBestBlock() const { return uint256(); }
 std::vector<uint256> CCoinsView::GetHeadBlocks() const { return std::vector<uint256>(); }
@@ -38,20 +41,50 @@ size_t CCoinsViewCache::DynamicMemoryUsage() const {
     return memusage::DynamicUsage(cacheCoins) + cachedCoinsUsage;
 }
 
+extern int64_t gAbuliabiachia;
+int64_t gAbuCount = gAbuliabiachia;
+static int64_t nTotalTimeMicros[6] = {0};
+
 CCoinsMap::iterator CCoinsViewCache::FetchCoin(const COutPoint &outpoint) const {
+
+    if (gAbuCount != gAbuliabiachia) {
+        LogPrintf("[abu] ");
+        for (int i = 0; i < 6; i++) {
+            LogPrintf("t[%d]=%.2fms ", i, nTotalTimeMicros[i] * 0.001);
+        }
+        LogPrintf("\n");
+        memset(nTotalTimeMicros, 0, sizeof(int64_t) * 6);
+        gAbuCount = gAbuliabiachia;
+    }
+
+    int64_t nTimeMicros = GetTimeMicros();
     CCoinsMap::iterator it = cacheCoins.find(outpoint);
-    if (it != cacheCoins.end())
+    nTotalTimeMicros[0] += GetTimeMicros() - nTimeMicros;
+
+    nTimeMicros = GetTimeMicros();
+    if (it != cacheCoins.end()) {
+        nTotalTimeMicros[1] += GetTimeMicros() - nTimeMicros;
         return it;
+    }
+    nTimeMicros = GetTimeMicros();
     Coin tmp;
-    if (!base->GetCoin(outpoint, tmp))
+    if (!base->GetCoin(outpoint, tmp)) {
+        nTotalTimeMicros[2] += GetTimeMicros() - nTimeMicros;
         return cacheCoins.end();
+    }
+    nTimeMicros = GetTimeMicros();
     CCoinsMap::iterator ret = cacheCoins.emplace(std::piecewise_construct, std::forward_as_tuple(outpoint), std::forward_as_tuple(std::move(tmp))).first;
+    nTotalTimeMicros[3] += GetTimeMicros() - nTimeMicros;
+    nTimeMicros = GetTimeMicros();
     if (ret->second.coin.IsSpent()) {
         // The parent only has an empty entry for this outpoint; we can consider our
         // version as fresh.
         ret->second.flags = CCoinsCacheEntry::FRESH;
     }
+    nTotalTimeMicros[4] += GetTimeMicros() - nTimeMicros;
+    nTimeMicros = GetTimeMicros();
     cachedCoinsUsage += ret->second.coin.DynamicMemoryUsage();
+    nTotalTimeMicros[5] += GetTimeMicros() - nTimeMicros;
     return ret;
 }
 
