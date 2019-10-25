@@ -42,14 +42,14 @@ size_t CCoinsViewCache::DynamicMemoryUsage() const {
 }
 
 extern int64_t gAbuliabiachia;
-extern bool gConnectBlockRunning;
+extern bool gMonitorSession;
 
 static int64_t nAbuCount = gAbuliabiachia;
 static int64_t nShrimp[6] = {0};
 
 CCoinsMap::iterator CCoinsViewCache::FetchCoin(const COutPoint &outpoint) const {
 
-    LogPrintf("[iii] gConnectBlockRunning=%d\n", gConnectBlockRunning);
+    LogPrintf("[iii] gConnectBlockRunning=%d\n", gMonitorSession);
 
     if (nAbuCount != gAbuliabiachia) {
         LogPrintf("[III] abu=%d ", nAbuCount);
@@ -65,29 +65,29 @@ CCoinsMap::iterator CCoinsViewCache::FetchCoin(const COutPoint &outpoint) const 
 
     int64_t nPunch = GetTimeMicros();
     CCoinsMap::iterator it = cacheCoins.find(outpoint);
-    if (gConnectBlockRunning)
+    if (gMonitorSession)
         nShrimp[0] += GetTimeMicros() - nPunch;
 
     nPunch = GetTimeMicros();
     if (it != cacheCoins.end()) {
-        if (gConnectBlockRunning)
+        if (gMonitorSession)
             nShrimp[1] += GetTimeMicros() - nPunch;
         return it;
     }
-    if (gConnectBlockRunning)
+    if (gMonitorSession)
         nShrimp[1] += GetTimeMicros() - nPunch;
     nPunch = GetTimeMicros();
     Coin tmp;
     if (!base->GetCoin(outpoint, tmp)) {
-        if (gConnectBlockRunning)
+        if (gMonitorSession)
             nShrimp[2] += GetTimeMicros() - nPunch;
         return cacheCoins.end();
     }
-    if (gConnectBlockRunning)
+    if (gMonitorSession)
         nShrimp[2] += GetTimeMicros() - nPunch;
     nPunch = GetTimeMicros();
     CCoinsMap::iterator ret = cacheCoins.emplace(std::piecewise_construct, std::forward_as_tuple(outpoint), std::forward_as_tuple(std::move(tmp))).first;
-    if (gConnectBlockRunning)
+    if (gMonitorSession)
         nShrimp[3] += GetTimeMicros() - nPunch;
     nPunch = GetTimeMicros();
     if (ret->second.coin.IsSpent()) {
@@ -95,11 +95,11 @@ CCoinsMap::iterator CCoinsViewCache::FetchCoin(const COutPoint &outpoint) const 
         // version as fresh.
         ret->second.flags = CCoinsCacheEntry::FRESH;
     }
-    if (gConnectBlockRunning)
+    if (gMonitorSession)
         nShrimp[4] += GetTimeMicros() - nPunch;
     nPunch = GetTimeMicros();
     cachedCoinsUsage += ret->second.coin.DynamicMemoryUsage();
-    if (gConnectBlockRunning)
+    if (gMonitorSession)
         nShrimp[5] += GetTimeMicros() - nPunch;
     return ret;
 }
