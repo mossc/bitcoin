@@ -49,10 +49,12 @@ CCoinsMap::iterator CCoinsViewCache::FetchCoin(const COutPoint &outpoint) const 
 
     if (gAbuCount != gAbuliabiachia) {
         LogPrintf("[III] abu=%d ", gAbuCount);
+        int64_t nSum = 0;
         for (int i = 0; i < 6; i++) {
+            nSum += nShrimp[i];
             LogPrintf("t[%d]=%.2fms ", i, nShrimp[i] * 0.001);
         }
-        LogPrintf("\n");
+        LogPrintf("sum=%.2fms\n", nSum * 0.001);
         memset(nShrimp, 0, sizeof(int64_t) * 6);
         gAbuCount = gAbuliabiachia;
     }
