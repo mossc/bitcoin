@@ -43,6 +43,7 @@ size_t CCoinsViewCache::DynamicMemoryUsage() const {
 
 extern int64_t gAbuliabiachia;
 extern bool gConnectBlockRunning;
+gConnectBlockRunning = false;
 
 static int64_t nAbuCount = gAbuliabiachia;
 static int64_t nShrimp[6] = {0};
