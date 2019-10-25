@@ -2000,7 +2000,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
             }
             nFees += txfee;
             if (!MoneyRange(nFees)) {
-                gAbuliabiachia++:
+                gAbuliabiachia++;
                 return state.DoS(100, error("%s: accumulated fee in the block out of range.", __func__),
                                  REJECT_INVALID, "bad-txns-accumulated-fee-outofrange");
             }
@@ -2014,7 +2014,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
             }
 
             if (!SequenceLocks(tx, nLockTimeFlags, &prevheights, *pindex)) {
-                gAbuliabiachia++:
+                gAbuliabiachia++;
                 return state.DoS(100, error("%s: contains a non-BIP68-final transaction", __func__),
                                  REJECT_INVALID, "bad-txns-nonfinal");
             }
@@ -2075,7 +2075,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     }
 
     if (!WriteUndoDataForBlock(blockundo, state, pindex, chainparams)) {
-        gAbuliabiachia++:
+        gAbuliabiachia++;
         return false;
     }
 
