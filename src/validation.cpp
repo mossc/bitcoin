@@ -2002,6 +2002,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
             CAmount txfee = 0;
             if (!Consensus::CheckTxInputs(tx, state, view, pindex->nHeight, txfee)) {
                 gAbuliabiachia++;
+                nShrimp[1] += GetTimeMicros() - nPunch;
                 return error("%s: Consensus::CheckTxInputs: %s, %s", __func__, tx.GetHash().ToString(), FormatStateMessage(state));
             }
             nShrimp[1] += GetTimeMicros() - nPunch;
@@ -2010,6 +2011,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
             nFees += txfee;
             if (!MoneyRange(nFees)) {
                 gAbuliabiachia++;
+                nShrimp[2] += GetTimeMicros() - nPunch;
                 return state.DoS(100, error("%s: accumulated fee in the block out of range.", __func__),
                                  REJECT_INVALID, "bad-txns-accumulated-fee-outofrange");
             }
@@ -2028,6 +2030,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
             nPunch = GetTimeMicros();
             if (!SequenceLocks(tx, nLockTimeFlags, &prevheights, *pindex)) {
                 gAbuliabiachia++;
+                nShrimp[4] += GetTimeMicros() - nPunch;
                 return state.DoS(100, error("%s: contains a non-BIP68-final transaction", __func__),
                                  REJECT_INVALID, "bad-txns-nonfinal");
             }
@@ -2042,6 +2045,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
         nSigOpsCost += GetTransactionSigOpCost(tx, view, flags);
         if (nSigOpsCost > MAX_BLOCK_SIGOPS_COST) {
             gAbuliabiachia++;
+            nShrimp[5] += GetTimeMicros() - nPunch;
             return state.DoS(100, error("ConnectBlock(): too many sigops"),
                              REJECT_INVALID, "bad-blk-sigops");
         }
@@ -2055,6 +2059,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
             bool fCacheResults = fJustCheck; /* Don't cache results if we're actually connecting blocks (still consult the cache, though) */
             if (!CheckInputs(tx, state, view, fScriptChecks, flags, fCacheResults, fCacheResults, txdata[i], nScriptCheckThreads ? &vChecks : nullptr)) {
                 gAbuliabiachia++;
+                nShrimp[6] += GetTimeMicros() - nPunch;
                 return error("ConnectBlock(): CheckInputs on %s failed with %s",
                     tx.GetHash().ToString(), FormatStateMessage(state));
             }
