@@ -65,15 +65,15 @@ CCoinsMap::iterator CCoinsViewCache::FetchCoin(const COutPoint &outpoint) const 
 
     nPunch = GetTimeMicros();
     if (it != cacheCoins.end()) {
-        nShrimp[1] += GetTimeMicros() - nPunch;
         return it;
     }
+    nShrimp[1] += GetTimeMicros() - nPunch;
     nPunch = GetTimeMicros();
     Coin tmp;
     if (!base->GetCoin(outpoint, tmp)) {
-        nShrimp[2] += GetTimeMicros() - nPunch;
         return cacheCoins.end();
     }
+    nShrimp[2] += GetTimeMicros() - nPunch;
     nPunch = GetTimeMicros();
     CCoinsMap::iterator ret = cacheCoins.emplace(std::piecewise_construct, std::forward_as_tuple(outpoint), std::forward_as_tuple(std::move(tmp))).first;
     nShrimp[3] += GetTimeMicros() - nPunch;
