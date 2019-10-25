@@ -74,9 +74,9 @@ CCoinsMap::iterator CCoinsViewCache::FetchCoin(const COutPoint &outpoint) const 
     }
     if (gMonitorSession)
         nShrimp[1] += GetTimeMicros() - nPunch;
+    Coin tmp;
     /*
     nPunch = GetTimeMicros();
-    Coin tmp;
     if (!base->GetCoin(outpoint, tmp)) {
         if (gMonitorSession)
             nShrimp[2] += GetTimeMicros() - nPunch;
