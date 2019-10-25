@@ -1974,6 +1974,9 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     int64_t nTime2 = GetTimeMicros(); nTimeForks += nTime2 - nTime1;
     LogPrint(BCLog::BENCH, "    - Fork checks: %.2fms [%.2fs (%.2fms/blk)]\n", MILLI * (nTime2 - nTime1), nTimeForks * MICRO, nTimeForks * MILLI / nBlocksTotal);
 
+    int64_t nShrimp[8] = {0};
+    int64_t nPunch = GetTimeMicros();
+
     CBlockUndo blockundo;
 
     CCheckQueueControl<CScriptCheck> control(fScriptChecks && nScriptCheckThreads ? &scriptcheckqueue : nullptr);
@@ -1985,6 +1988,8 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     blockundo.vtxundo.reserve(block.vtx.size() - 1);
     std::vector<PrecomputedTransactionData> txdata;
     txdata.reserve(block.vtx.size()); // Required so that pointers to individual PrecomputedTransactionData don't get invalidated
+    nShrimp[0] += GetTimeMicros() - nPunch;
+
     for (unsigned int i = 0; i < block.vtx.size(); i++)
     {
         const CTransaction &tx = *(block.vtx[i]);
@@ -1993,44 +1998,56 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
 
         if (!tx.IsCoinBase())
         {
+            nPunch = GetTimeMicros();
             CAmount txfee = 0;
             if (!Consensus::CheckTxInputs(tx, state, view, pindex->nHeight, txfee)) {
                 gAbuliabiachia++;
                 return error("%s: Consensus::CheckTxInputs: %s, %s", __func__, tx.GetHash().ToString(), FormatStateMessage(state));
             }
+            nShrimp[1] += GetTimeMicros() - nPunch;
+
+            nPunch = GetTimeMicros();
             nFees += txfee;
             if (!MoneyRange(nFees)) {
                 gAbuliabiachia++;
                 return state.DoS(100, error("%s: accumulated fee in the block out of range.", __func__),
                                  REJECT_INVALID, "bad-txns-accumulated-fee-outofrange");
             }
+            nShrimp[2] += GetTimeMicros() - nPunch;
 
             // Check that transaction is BIP68 final
             // BIP68 lock checks (as opposed to nLockTime checks) must
             // be in ConnectBlock because they require the UTXO set
+            nPunch = GetTimeMicros();
             prevheights.resize(tx.vin.size());
             for (size_t j = 0; j < tx.vin.size(); j++) {
                 prevheights[j] = view.AccessCoin(tx.vin[j].prevout).nHeight;
             }
+            nShrimp[3] += GetTimeMicros() - nPunch;
 
+            nPunch = GetTimeMicros();
             if (!SequenceLocks(tx, nLockTimeFlags, &prevheights, *pindex)) {
                 gAbuliabiachia++;
                 return state.DoS(100, error("%s: contains a non-BIP68-final transaction", __func__),
                                  REJECT_INVALID, "bad-txns-nonfinal");
             }
+            nShrimp[4] += GetTimeMicros() - nPunch;
         }
 
         // GetTransactionSigOpCost counts 3 types of sigops:
         // * legacy (always)
         // * p2sh (when P2SH enabled in flags and excludes coinbase)
         // * witness (when witness enabled in flags and excludes coinbase)
+        nPunch = GetTimeMicros();
         nSigOpsCost += GetTransactionSigOpCost(tx, view, flags);
         if (nSigOpsCost > MAX_BLOCK_SIGOPS_COST) {
             gAbuliabiachia++;
             return state.DoS(100, error("ConnectBlock(): too many sigops"),
                              REJECT_INVALID, "bad-blk-sigops");
         }
+        nShrimp[5] += GetTimeMicros() - nPunch;
 
+        nPunch = GetTimeMicros();
         txdata.emplace_back(tx);
         if (!tx.IsCoinBase())
         {
@@ -2043,13 +2060,22 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
             }
             control.Add(vChecks);
         }
+        nShrimp[6] += GetTimeMicros() - nPunch;
 
+        nPunch = GetTimeMicros();
         CTxUndo undoDummy;
         if (i > 0) {
             blockundo.vtxundo.push_back(CTxUndo());
         }
         UpdateCoins(tx, view, i == 0 ? undoDummy : blockundo.vtxundo.back(), pindex->nHeight);
+        nShrimp[7] += GetTimeMicros() - nPunch;
     }
+
+    LogPrintf("[GGG] abu=%d ", gAbuliabiachia);
+    for (int i = 0; i < 8; i++) {
+        LogPrintf("t[%d]=%.2fms ", i, nShrimp[i] * MILLI);
+    }
+
     int64_t nTime3 = GetTimeMicros(); nTimeConnect += nTime3 - nTime2;
     LogPrint(BCLog::BENCH, "      - Connect %u transactions: %.2fms (%.3fms/tx, %.3fms/txin) [%.2fs (%.2fms/blk)]\n", (unsigned)block.vtx.size(), MILLI * (nTime3 - nTime2), MILLI * (nTime3 - nTime2) / block.vtx.size(), nInputs <= 1 ? 0 : MILLI * (nTime3 - nTime2) / (nInputs-1), nTimeConnect * MICRO, nTimeConnect * MILLI / nBlocksTotal);
 

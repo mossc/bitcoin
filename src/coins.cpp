@@ -42,49 +42,49 @@ size_t CCoinsViewCache::DynamicMemoryUsage() const {
 }
 
 extern int64_t gAbuliabiachia;
-int64_t gAbuCount = gAbuliabiachia;
-static int64_t nTotalTimeMicros[6] = {0};
+static int64_t gAbuCount = gAbuliabiachia;
+static int64_t nShrimp[6] = {0};
 
 CCoinsMap::iterator CCoinsViewCache::FetchCoin(const COutPoint &outpoint) const {
 
     if (gAbuCount != gAbuliabiachia) {
-        LogPrintf("[abu] ");
+        LogPrintf("[III] abu=%d ", gAbuCount);
         for (int i = 0; i < 6; i++) {
-            LogPrintf("t[%d]=%.2fms ", i, nTotalTimeMicros[i] * 0.001);
+            LogPrintf("t[%d]=%.2fms ", i, nShrimp[i] * 0.001);
         }
         LogPrintf("\n");
-        memset(nTotalTimeMicros, 0, sizeof(int64_t) * 6);
+        memset(nShrimp, 0, sizeof(int64_t) * 6);
         gAbuCount = gAbuliabiachia;
     }
 
-    int64_t nTimeMicros = GetTimeMicros();
+    int64_t nPunch = GetTimeMicros();
     CCoinsMap::iterator it = cacheCoins.find(outpoint);
-    nTotalTimeMicros[0] += GetTimeMicros() - nTimeMicros;
+    nShrimp[0] += GetTimeMicros() - nPunch;
 
-    nTimeMicros = GetTimeMicros();
+    nPunch = GetTimeMicros();
     if (it != cacheCoins.end()) {
-        nTotalTimeMicros[1] += GetTimeMicros() - nTimeMicros;
+        nShrimp[1] += GetTimeMicros() - nPunch;
         return it;
     }
-    nTimeMicros = GetTimeMicros();
+    nPunch = GetTimeMicros();
     Coin tmp;
     if (!base->GetCoin(outpoint, tmp)) {
-        nTotalTimeMicros[2] += GetTimeMicros() - nTimeMicros;
+        nShrimp[2] += GetTimeMicros() - nPunch;
         return cacheCoins.end();
     }
-    nTimeMicros = GetTimeMicros();
+    nPunch = GetTimeMicros();
     CCoinsMap::iterator ret = cacheCoins.emplace(std::piecewise_construct, std::forward_as_tuple(outpoint), std::forward_as_tuple(std::move(tmp))).first;
-    nTotalTimeMicros[3] += GetTimeMicros() - nTimeMicros;
-    nTimeMicros = GetTimeMicros();
+    nShrimp[3] += GetTimeMicros() - nPunch;
+    nPunch = GetTimeMicros();
     if (ret->second.coin.IsSpent()) {
         // The parent only has an empty entry for this outpoint; we can consider our
         // version as fresh.
         ret->second.flags = CCoinsCacheEntry::FRESH;
     }
-    nTotalTimeMicros[4] += GetTimeMicros() - nTimeMicros;
-    nTimeMicros = GetTimeMicros();
+    nShrimp[4] += GetTimeMicros() - nPunch;
+    nPunch = GetTimeMicros();
     cachedCoinsUsage += ret->second.coin.DynamicMemoryUsage();
-    nTotalTimeMicros[5] += GetTimeMicros() - nTimeMicros;
+    nShrimp[5] += GetTimeMicros() - nPunch;
     return ret;
 }
 
