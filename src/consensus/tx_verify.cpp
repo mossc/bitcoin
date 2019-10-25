@@ -222,7 +222,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
             LogPrintf("t[%d]=%.2fms ", i, nShrimp[i] * 0.001);
         }
         LogPrintf("sum=%.2fms\n", nSum * 0.001);
-        memset(nShrimp, 0, sizeof(int64_t) * 6);
+        memset(nShrimp, 0, sizeof(int64_t) * 5);
         nAbuCount = gAbuliabiachia;
     }
 
