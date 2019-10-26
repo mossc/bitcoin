@@ -60,10 +60,10 @@ CCoinsMap::iterator CCoinsViewCache::FetchCoin(const COutPoint &outpoint) const 
         // version as fresh.
         ret->second.flags = CCoinsCacheEntry::FRESH;
     }
-    size_t tmp = ret->second.coin.DynamicMemoryUsage();
+    size_t tmpSize = ret->second.coin.DynamicMemoryUsage();
     gDynamicMemoryUsage++;
-    gCachedCoinUsage += tmp;
-    cachedCoinsUsage += tmp;
+    gCachedCoinUsage += tmpSize;
+    cachedCoinsUsage += tmpSize;
     return ret;
 }
 
