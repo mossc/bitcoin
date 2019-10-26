@@ -41,7 +41,13 @@ size_t CCoinsViewCache::DynamicMemoryUsage() const {
     return memusage::DynamicUsage(cacheCoins) + cachedCoinsUsage;
 }
 
+static int64_t gFetchCoin = 0;
+static int64_t gGetCoin = 0;
+static int64_t gDynamicMemoryUsage = 0;
+static size_t gCachedCoinUsage = 0;
+
 CCoinsMap::iterator CCoinsViewCache::FetchCoin(const COutPoint &outpoint) const {
+    gFetchCoin++;
     CCoinsMap::iterator it = cacheCoins.find(outpoint);
     if (it != cacheCoins.end())
         return it;
@@ -54,11 +60,15 @@ CCoinsMap::iterator CCoinsViewCache::FetchCoin(const COutPoint &outpoint) const 
         // version as fresh.
         ret->second.flags = CCoinsCacheEntry::FRESH;
     }
-    cachedCoinsUsage += ret->second.coin.DynamicMemoryUsage();
+    size_t tmp = ret->second.coin.DynamicMemoryUsage();
+    gDynamicMemoryUsage++;
+    gCachedCoinUsage += tmp;
+    cachedCoinsUsage += tmp;
     return ret;
 }
 
 bool CCoinsViewCache::GetCoin(const COutPoint &outpoint, Coin &coin) const {
+    gGetCoin++;
     CCoinsMap::const_iterator it = FetchCoin(outpoint);
     if (it != cacheCoins.end()) {
         coin = it->second.coin;
@@ -143,6 +153,14 @@ bool CCoinsViewCache::HaveCoin(const COutPoint &outpoint) const {
         LogPrintf("sum=%.2fms\n", nSum * 0.001);
         memset(nShrimp, 0, sizeof(int64_t) * 1);
         nAbuCount = gAbuliabiachia;
+
+        LogPrintf("[III] FetchCoin=%d GetCoin=%d sum=%d\n", gFetchCoin, gGetCoin, gFetchCoin + gGetCoin);
+        gFetchCoin = 0;
+        gGetCoin = 0;
+
+        LogPrintf("[III] DynamicMemoryUsage=%d CachedCoinUsage=%d\n", gDynamicMemoryUsage, gCachedCoinUsage);
+        gDynamicMemoryUsage = 0;
+        gCachedCoinUsage = 0;
     }
 
     int64_t nPunch = GetTimeMicros();
