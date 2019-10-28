@@ -46,8 +46,14 @@ static int64_t gGetCoin = 0;
 static int64_t gDynamicMemoryUsage = 0;
 static size_t gCachedCoinUsage = 0;
 
+static int64_t gMaxFetchCoin = 0;
+static int64_t gMaxGetCoin = 0;
+
 CCoinsMap::iterator CCoinsViewCache::FetchCoin(const COutPoint &outpoint) const {
     gFetchCoin++;
+    if (gFetchCoin > gMaxFetchCoin)
+        gMaxFetchCoin = gFetchCoin;
+
     CCoinsMap::iterator it = cacheCoins.find(outpoint);
     if (it != cacheCoins.end()) {
         gFetchCoin--;
@@ -74,6 +80,9 @@ CCoinsMap::iterator CCoinsViewCache::FetchCoin(const COutPoint &outpoint) const 
 
 bool CCoinsViewCache::GetCoin(const COutPoint &outpoint, Coin &coin) const {
     gGetCoin++;
+    if (gGetCoin > gMaxGetCoin)
+        gMaxGetCoin = gGetCoin;
+
     CCoinsMap::const_iterator it = FetchCoin(outpoint);
     if (it != cacheCoins.end()) {
         coin = it->second.coin;
@@ -161,9 +170,11 @@ bool CCoinsViewCache::HaveCoin(const COutPoint &outpoint) const {
         memset(nShrimp, 0, sizeof(int64_t) * 1);
         nAbuCount = gAbuliabiachia;
 
-        LogPrintf("[III] FetchCoin=%d GetCoin=%d sum=%d\n", gFetchCoin, gGetCoin, gFetchCoin + gGetCoin);
+        LogPrintf("[III] MaxFetchCoin=%d MaxGetCoin=%d sum=%d\n", gMaxFetchCoin, gMaxGetCoin, gMaxFetchCoin + gMaxGetCoin);
         gFetchCoin = 0;
         gGetCoin = 0;
+        gMaxFetchCoin = 0;
+        gMaxGetCoin = 0;
 
         LogPrintf("[III] DynamicMemoryUsage=%d CachedCoinUsage=%d\n", gDynamicMemoryUsage, gCachedCoinUsage);
         gDynamicMemoryUsage = 0;
