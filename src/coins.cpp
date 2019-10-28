@@ -46,13 +46,16 @@ static int64_t gGetCoin = 0;
 static int64_t gDynamicMemoryUsage = 0;
 static size_t gCachedCoinUsage = 0;
 
-static int64_t gMaxFetchCoin = 0;
-static int64_t gMaxGetCoin = 0;
+static int64_t gMaxDepthFetchCoin = 0;
+static int64_t gMaxDepthGetCoin = 0;
+static int64_t gAccFetchCoin = 0;
+static int64_t gAccGetCoin = 0;
 
 CCoinsMap::iterator CCoinsViewCache::FetchCoin(const COutPoint &outpoint) const {
     gFetchCoin++;
-    if (gFetchCoin > gMaxFetchCoin)
-        gMaxFetchCoin = gFetchCoin;
+    gAccFetchCoin++;
+    if (gFetchCoin > gMaxDepthFetchCoin)
+        gMaxDepthFetchCoin = gFetchCoin;
 
     CCoinsMap::iterator it = cacheCoins.find(outpoint);
     if (it != cacheCoins.end()) {
@@ -80,8 +83,9 @@ CCoinsMap::iterator CCoinsViewCache::FetchCoin(const COutPoint &outpoint) const 
 
 bool CCoinsViewCache::GetCoin(const COutPoint &outpoint, Coin &coin) const {
     gGetCoin++;
-    if (gGetCoin > gMaxGetCoin)
-        gMaxGetCoin = gGetCoin;
+    gAccGetCoin++;
+    if (gGetCoin > gMaxDepthGetCoin)
+        gMaxDepthGetCoin = gGetCoin;
 
     CCoinsMap::const_iterator it = FetchCoin(outpoint);
     if (it != cacheCoins.end()) {
@@ -170,11 +174,14 @@ bool CCoinsViewCache::HaveCoin(const COutPoint &outpoint) const {
         memset(nShrimp, 0, sizeof(int64_t) * 1);
         nAbuCount = gAbuliabiachia;
 
-        LogPrintf("[III] MaxFetchCoin=%d MaxGetCoin=%d sum=%d\n", gMaxFetchCoin, gMaxGetCoin, gMaxFetchCoin + gMaxGetCoin);
+        LogPrintf("[III] MaxDepthFetchCoin=%d MaxDepthGetCoin=%d sum=%d\n", gMaxDepthFetchCoin, gMaxDepthGetCoin, gMaxDepthFetchCoin + gMaxDepthGetCoin);
+        LogPrintf("[III] AccFetchCoin=%d AccGetCoin=%d sum=%d\n", gAccFetchCoin, gAccGetCoin, gAccFetchCoin + gAccGetCoin);
         gFetchCoin = 0;
         gGetCoin = 0;
-        gMaxFetchCoin = 0;
-        gMaxGetCoin = 0;
+        gMaxDepthFetchCoin = 0;
+        gMaxDepthGetCoin = 0;
+        gAccFetchCoin = 0;
+        gAccGetCoin = 0;
 
         LogPrintf("[III] DynamicMemoryUsage=%d CachedCoinUsage=%d\n", gDynamicMemoryUsage, gCachedCoinUsage);
         gDynamicMemoryUsage = 0;
