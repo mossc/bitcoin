@@ -174,7 +174,7 @@ bool CCoinsViewCache::HaveCoin(const COutPoint &outpoint) const {
         memset(nShrimp, 0, sizeof(int64_t) * 1);
         nAbuCount = gAbuliabiachia;
 
-        LogPrintf("[III] MaxDepthFetchCoin=%d MaxDepthGetCoin=%d sum=%d\n", gMaxDepthFetchCoin, gMaxDepthGetCoin, gMaxDepthFetchCoin + gMaxDepthGetCoin);
+        //LogPrintf("[III] MaxDepthFetchCoin=%d MaxDepthGetCoin=%d sum=%d\n", gMaxDepthFetchCoin, gMaxDepthGetCoin, gMaxDepthFetchCoin + gMaxDepthGetCoin);
         LogPrintf("[III] AccFetchCoin=%d AccGetCoin=%d sum=%d\n", gAccFetchCoin, gAccGetCoin, gAccFetchCoin + gAccGetCoin);
         gFetchCoin = 0;
         gGetCoin = 0;
